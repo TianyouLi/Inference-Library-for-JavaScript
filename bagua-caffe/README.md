@@ -6,7 +6,11 @@ Build the code. Please follow [Caffe instruction](http://caffe.berkeleyvision.or
 
   make -j8
 
-  # Build Node.js Addons
+  # Install Dependencies
+
+  npm install
+
+  # Building
 
   node-gyp configure build
   ```
