@@ -1,0 +1,6 @@
+*.h5
+*.pb
+*.so
+demo/tf-mnist/data/
+bagua-tensorflow/build/
+bagua-tensorflow/node_modules/
