@@ -6,7 +6,7 @@ var SSD = require("./ssd.js");
 var LABELS = ["---", "aeroplane", "bicycle", "bird", "boat", "bottle", "bus", "car", "cat", "chair", "cow",
     "diningtable", "dog", "horse", "motorbike", "person", "pottedplant", "sheep", "sofa", "train", "tvmonitor"];
 
-var image = caffe.io.loadImage("dog.jpg");
+var image = caffe.io.loadImage("../images/dog.jpg");
 
 caffe.io.namedWindow("Image");
 

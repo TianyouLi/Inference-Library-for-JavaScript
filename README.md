@@ -11,5 +11,5 @@ Bagua is an ancient Chinese technique that can predict the future via looking ba
 
 # Currently Supported Backends
 1. bagua-caffe
-
+2. bagua-tensorflow
 
