@@ -27,13 +27,15 @@ function maxIndex(probabilities) {
 var g = new tf.Graph(graphDef);
 var sess = new tf.Session(g);
 
-var o = sess.run(["Softmax"],
+sess.run(["Softmax"],
   {
     //keras_learning_phase: new tf.Tensor(false),
     convolution2d_input_1: new tf.Tensor(transformer.preprocess(image))
+  },
+  o => {
+    let onehot = new Float32Array(o.data.buffer);
+    console.log(maxIndex(onehot));
   }
 );
 
-var onehot = new Float32Array(o.data.buffer);
-console.log(maxIndex(onehot));
 

@@ -1,6 +1,12 @@
-#include <stdio.h>
 #include <node.h>
 #include <nan.h>
+
+#include <string.h>
+#include <sstream>
+#include <vector>
+#include <list>
+#include <memory>
+
 #include <tensorflow/c/c_api.h>
 
 #define DIE(msg)  do { fputs (msg, stderr); abort(); } while(0)

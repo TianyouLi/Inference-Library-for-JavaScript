@@ -62,6 +62,62 @@ NAN_METHOD(Session::New) {
   RETURN(info.This());
 }
 
+class SessRunnerArgs {
+public:
+  TF_Buffer *run_options = nullptr;
+  std::vector<TF_Output>  inputs;
+  std::vector<TF_Tensor*> input_values;
+  std::vector<TF_Output>  outputs;
+  std::vector<TF_Tensor*> output_values;
+};
+
+class SessRunner : public Nan::AsyncWorker {
+public:
+  SessRunner (Nan::Callback *cb, TF_Session *sess, std::shared_ptr<SessRunnerArgs> args) : Nan::AsyncWorker(cb), sess_(sess), args_(args) {}
+
+  void Execute() {
+    TF_Status *status = TF_NewStatus();
+    TF_SessionRun (sess_,
+        args_->run_options,
+        &args_->inputs[0],
+        &args_->input_values[0],
+        args_->inputs.size(),
+        &args_->outputs[0],
+        &args_->output_values[0],
+        args_->outputs.size(),
+        nullptr,
+        0,
+        nullptr,
+        status);
+
+    success_ = TF_GetCode(status) == TF_OK;
+    if (!success_) {
+      printf("%s: %s", __func__, TF_Message(status));
+    }
+    TF_DeleteStatus(status);
+  }
+
+  void HandleOKCallback() {
+    Nan::HandleScope scope;
+    Local<Value> argv[1];
+
+    if (!success_) {
+      argv[0] = Nan::Undefined();
+    }
+    else {
+      //printf("%s: %d bytes\n", __func__, (int)TF_TensorByteSize(args_->output_values[0]));
+      argv[0] = Tensor::create(args_->output_values[0]);
+    }
+
+    callback->Call(1, argv);
+  }
+
+private:
+  TF_Session *sess_;
+  std::shared_ptr<SessRunnerArgs> args_;
+  bool success_;
+};
+
 NAN_METHOD(Session::run) {
   Nan::HandleScope scope;
   auto sess = Unwrap<Session>(info.This());
@@ -69,12 +125,7 @@ NAN_METHOD(Session::run) {
     return;
   }
 
-  TF_Status* status = TF_NewStatus();
-  TF_Buffer* run_options = nullptr;
-  std::vector<TF_Output>  inputs;
-  std::vector<TF_Tensor*> input_values;
-  std::vector<TF_Output>  outputs;
-  std::vector<TF_Tensor*> output_values;
+  std::shared_ptr<SessRunnerArgs> args (new SessRunnerArgs);
 
   Local<Array> fetches = Local<Array>::Cast(info[0]);
   for (size_t i = 0; i < fetches->Length(); i++) {
@@ -86,8 +137,8 @@ NAN_METHOD(Session::run) {
         DIE("Non-exist operation");
         return;
       }
-      outputs.push_back(TF_Output{oper, 0});
-      output_values.push_back(nullptr);
+      args->outputs.push_back(TF_Output{oper, 0});
+      args->output_values.push_back(nullptr);
     }
     else {
       DIE("UNIMPLEMENT");
@@ -107,7 +158,7 @@ NAN_METHOD(Session::run) {
       DIE("Non-exist operation");
       return;
     }
-    inputs.push_back(TF_Output{oper, 0});
+    args->inputs.push_back(TF_Output{oper, 0});
 
     Local<Value> val = feed->Get(key);
     if (!tensor_ctor->HasInstance(val)) {
@@ -116,16 +167,37 @@ NAN_METHOD(Session::run) {
     }
 
     auto tensor = Unwrap<Tensor>(val->ToObject());
-    input_values.push_back(tensor->tensor_);
+    args->input_values.push_back(tensor->tensor_);
   }
 
-  TF_SessionRun (sess->session_, run_options, &inputs[0], &input_values[0], inputs.size(), &outputs[0], &output_values[0], outputs.size(), nullptr, 0, NULL, status);
+  // Async call
+  if (info.Length() > 2 && info[info.Length() - 1]->IsFunction()) {
+    auto cb = new Nan::Callback(info[info.Length() - 1].As<Function>());
+    Nan::AsyncQueueWorker(new SessRunner(cb, sess->session_, args));
+    return;
+  }
+
+  // Sync call
+  TF_Status* status = TF_NewStatus();
+  TF_SessionRun (sess->session_,
+    args->run_options,
+    &args->inputs[0],
+    &args->input_values[0],
+    args->inputs.size(),
+    &args->outputs[0],
+    &args->output_values[0],
+    args->outputs.size(),
+    nullptr,
+    0,
+    nullptr,
+    status);
+
   if (TF_GetCode(status) != TF_OK) {
     printf("%s: %s", __func__, TF_Message(status));
   }
   else {
-    //printf("%s: %d bytes\n", __func__, (int)TF_TensorByteSize(output_values[0]));
-    RETURN(Tensor::create(output_values[0]));
+    //printf("%s: %d bytes\n", __func__, (int)TF_TensorByteSize(args->output_values[0]));
+    RETURN(Tensor::create(args->output_values[0]));
   }
   TF_DeleteStatus(status);
 }
