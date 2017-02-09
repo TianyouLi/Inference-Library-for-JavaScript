@@ -15,12 +15,8 @@
       'libraries': [
         '-L<!(pwd)/build/lib',
         '<!(pwd)/build/lib/libcaffe.a',
-	'<!(if [ -d /usr/local/cuda/lib ]; then echo "-L/usr/local/cuda/lib"; fi)',
-        '<!(if [ -d /usr/local/cuda/lib64 ]; then echo "-L/usr/local/cuda/lib64"; fi)',
-        '<!(if [ -d /usr/local/cuda ]; then echo "-lcudart"; fi)',
-	'-lcudart -lcublas -lcurand -lcudnn',	
         '-L/home/kanghua/mklml_lnx_2017.0.2.20170110/lib -lmklml_gnu',
-	#'-L/opt/intel/lib/intel64_lin -L/opt/intel/mkl/lib/intel64 -lmkl_rt',
+        #'-L/opt/intel/lib/intel64_lin -L/opt/intel/mkl/lib/intel64 -lmkl_rt',
         '-lglog -lprotobuf',
         '-lboost_system -lboost_filesystem -lboost_regex -lboost_thread',
         '-lhdf5_hl -lhdf5',
