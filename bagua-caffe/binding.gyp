@@ -23,10 +23,6 @@
         '-lopencv_core -lopencv_highgui -lopencv_imgproc',
         '-lm -lstdc++'
       ],
-      'ldflags': [
-	'<!(if [ -d /usr/local/cuda/lib ]; then echo "-Wl,-rpath,/usr/local/cuda/lib"; fi)',
-        '<!(if [ -d /usr/local/cuda/lib64 ]; then echo "-Wl,-rpath,/usr/local/cuda/lib64"; fi)',
-      ],
       'cflags_cc': [
         '-DCPU_ONLY=1',
         '-std=c++11',
