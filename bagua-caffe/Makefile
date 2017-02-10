@@ -73,7 +73,6 @@ NONGEN_CXX_SRCS := $(shell find \
 	src/$(PROJECT) \
 	include/$(PROJECT) \
 	python/$(PROJECT) \
-	matlab/+$(PROJECT)/private \
 	examples \
 	tools \
 	-name "*.cpp" -or -name "*.hpp" -or -name "*.cu" -or -name "*.cuh")
@@ -230,7 +229,6 @@ DOXYGEN_SOURCES := $(shell find \
 	src/$(PROJECT) \
 	include/$(PROJECT) \
 	python/ \
-	matlab/ \
 	examples \
 	tools \
 	-name "*.cpp" -or -name "*.hpp" -or -name "*.cu" -or -name "*.cuh" -or \

@@ -4,11 +4,13 @@ public:
   int num_channels_;
   int height_;
   int width_;
+  float scale_;
 
   JTransformer (const std::vector<int> &shape) {
     num_channels_ = shape[1];
     height_ = shape[2];
     width_ = shape[3];
+    scale_ = 0;
   }
 
   static NAN_MODULE_INIT(Init) {
@@ -19,6 +21,7 @@ public:
 
     Local<ObjectTemplate> proto = ctor->PrototypeTemplate();
     SetMethod(proto, "setMeanValue", SetMeanValue);
+    SetMethod(proto, "setScale", SetScale);
     SetMethod(proto, "preprocess", Preprocess);
 
     Nan::Set(target, __js("Transformer"), ctor->GetFunction());
@@ -42,6 +45,14 @@ public:
       ch.push_back(channel);
     }
     cv::merge(ch, self->mean_);
+    RETURN(info.This());
+  }
+
+  static NAN_METHOD(SetScale) {
+    auto self = Unwrap<JTransformer>(info.This());
+    __cxx(info[0], self->scale_);
+
+    RETURN(info.This());
   }
 
   static NAN_METHOD(Preprocess) {
@@ -79,6 +90,13 @@ public:
     }
     else {
       cv::subtract(fmat, self->mean_, normalized);
+    }
+
+    if (self->scale_ != 0) {
+      float *m = (float *) normalized.data;
+      for (int i = 0; i < normalized.size().area(); i++) {
+        m[i] *= self->scale_;
+      }
     }
 
     Local<Object> obj = Nan::New(mat_ctor_p)->GetFunction()->NewInstance();

@@ -4,7 +4,7 @@ Build the code. Please follow [Caffe instruction](http://caffe.berkeleyvision.or
   ```shell
   # Modify Makefile.config according to your Caffe installation.
 
-  make -j8
+  make lib -j8
 
   # Install Dependencies
 
@@ -13,6 +13,10 @@ Build the code. Please follow [Caffe instruction](http://caffe.berkeleyvision.or
   # Building
 
   node-gyp configure build
+
+  # Modify LD_LIBRARY_PATH
+
+  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/__build/lib
   ```
 
 # Demo
