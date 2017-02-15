@@ -16,7 +16,7 @@
       ],
       'libraries': [
         '-L<!(pwd)/tensorflow',
-        '-ltensorflow-lnx64',
+        '-ltensorflow',
         '-lopencv_core -lopencv_highgui -lopencv_imgproc',
         '-lm -lstdc++'
       ],
@@ -24,6 +24,9 @@
         '-std=c++11',
         '-fexceptions',
         '-Wno-ignored-qualifiers'
+      ],
+      'ldflags': [
+        '-Wl,-rpath,\$$ORIGIN/../lib'
       ]
     }
   ]

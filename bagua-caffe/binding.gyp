@@ -22,6 +22,9 @@
         '-std=c++11',
         '-fexceptions',
         '-Wno-ignored-qualifiers'
+      ],
+      'ldflags': [
+        '-Wl,-rpath,\$$ORIGIN/../lib'
       ]
     }
   ]
