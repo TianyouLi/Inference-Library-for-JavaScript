@@ -1,7 +1,37 @@
-template <typename Dtype, typename T>
+template <typename Dtype>
+class JNet;
+
+template <typename Dtype>
+class NetOpener : public Nan::AsyncWorker {
+public:
+  NetOpener (Nan::Callback *cb, const char *file, const char *model) : Nan::AsyncWorker(cb), file_(file), model_(model) {}
+
+  void Execute() {
+    net_.reset(new Net<Dtype>(file_, TEST));
+    net_->CopyTrainedLayersFrom(model_);
+  }
+
+  void HandleOKCallback() {
+    Nan::HandleScope scope;
+    JNet<Dtype> *jnet = new JNet<Dtype>(net_);
+
+    MaybeLocal<Object> instance = Nan::NewInstance(Nan::New(JNet<Dtype>::ctor_instance_));
+    jnet->Wrap(instance.ToLocalChecked());
+
+    Local<Value> argv[] = { instance.ToLocalChecked() };
+    callback->Call(1, argv);
+  }
+
+private:
+  shared_ptr<Net<Dtype>> net_;
+  std::string file_;
+  std::string model_;
+};
+
+template <typename Dtype>
 class NetForwarder : public Nan::AsyncWorker {
 public:
-  NetForwarder (Nan::Callback *cb, T self, const shared_ptr<Net<Dtype>> &net) : Nan::AsyncWorker(cb), self_(self), net_(net) {}
+  NetForwarder (Nan::Callback *cb, const shared_ptr<Net<Dtype>> &net) : Nan::AsyncWorker(cb), net_(net) {}
 
   void Execute() {
     net_->Forward();
@@ -14,7 +44,6 @@ public:
   }
 
 private:
-  T self_;
   shared_ptr<Net<Dtype>> net_;
 };
 
@@ -51,6 +80,8 @@ public:
 
   Nan::Persistent<Object> blobs_p;
 
+  template <typename D> friend class NetOpener;
+
 private:
   void init_persistents() {
     auto names = net_->blob_names();
@@ -66,12 +97,24 @@ private:
 
   static NAN_METHOD(New) {
     Nan::HandleScope scope;
-    if (info.IsConstructCall() && info.Length() >= 2) {
-      String::Utf8Value file(info[0]->ToString());
-      String::Utf8Value model(info[1]->ToString());
+    if (info.IsConstructCall() && info.Length() < 2) {
+      return;
+    }
+
+    String::Utf8Value file(info[0]->ToString());
+    String::Utf8Value model(info[1]->ToString());
+    
+    if (info.IsConstructCall()) {
       auto o = new JNet(*file, *model);
       o->Wrap(info.This());
       RETURN(info.This());
+    }
+    else if (info.Length() >= 3 && info[2]->IsFunction()) {
+      auto cb = new Nan::Callback(info[2].As<Function>());
+      Nan::AsyncQueueWorker(new NetOpener<Dtype>(cb, *file, *model));
+    }
+    else {
+      Nan::ThrowError("Invalid argument");
     }
   }
 
@@ -87,7 +130,7 @@ private:
 
     if (fx->IsFunction()) {
       auto cb = new Nan::Callback(fx.As<Function>());
-      Nan::AsyncQueueWorker(new NetForwarder<Dtype, JNet*>(cb, self, self->net_));
+      Nan::AsyncQueueWorker(new NetForwarder<Dtype>(cb, self->net_));
     }
     else {
       RETURN(__js_vec(self->net_->Forward()));
