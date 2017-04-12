@@ -99,9 +99,9 @@ public:
       }
     }
 
-    Local<Object> obj = Nan::New(mat_ctor_p)->GetFunction()->NewInstance();
-    Unwrap<JMat>(obj)->mat_ = normalized;
-    RETURN (obj);
+    MaybeLocal<Object> obj = Nan::NewInstance(Nan::New(mat_ctor_instance_p));
+    Unwrap<JMat>(obj.ToLocalChecked())->mat_ = normalized;
+    RETURN (obj.ToLocalChecked());
   }
 };
 
@@ -139,9 +139,9 @@ public:
     Local<Value> argv[1];
 
     if (res_) {
-      Local<Object> obj = Nan::New(mat_ctor_p)->GetFunction()->NewInstance();
-      Nan::ObjectWrap::Unwrap<JMat>(obj)->mat_ = mat_;
-      argv[0] = obj;
+      MaybeLocal<Object> obj = Nan::NewInstance(Nan::New(mat_ctor_instance_p));
+      Nan::ObjectWrap::Unwrap<JMat>(obj.ToLocalChecked())->mat_ = mat_;
+      argv[0] = obj.ToLocalChecked();
     }
     else {
       argv[0] = Nan::Undefined();
@@ -225,9 +225,9 @@ public:
     else {
       cv::Mat mat;
       if (self->vc_.read(mat)) {
-        Local<Object> obj = Nan::New(mat_ctor_p)->GetFunction()->NewInstance();
-        Nan::ObjectWrap::Unwrap<JMat>(obj)->mat_ = mat;
-        RETURN(obj);
+        MaybeLocal<Object> obj = Nan::NewInstance(Nan::New(mat_ctor_instance_p));
+        Nan::ObjectWrap::Unwrap<JMat>(obj.ToLocalChecked())->mat_ = mat;
+        RETURN(obj.ToLocalChecked());
       }
     }
   }
@@ -242,8 +242,8 @@ public:
 
 static NAN_METHOD(LoadImage) {
   Nan::HandleScope scope;
-  Local<Object> obj = Nan::New(mat_ctor_p)->GetFunction()->NewInstance();
-  JMat *img = Nan::ObjectWrap::Unwrap<JMat>(obj);
+  MaybeLocal<Object> obj = Nan::NewInstance(Nan::New(mat_ctor_instance_p));
+  JMat *img = Nan::ObjectWrap::Unwrap<JMat>(obj.ToLocalChecked());
   int type = info.Length() >= 2 ? info[1]->IntegerValue() : int(CV_LOAD_IMAGE_UNCHANGED);
 
   try {
@@ -258,7 +258,7 @@ static NAN_METHOD(LoadImage) {
       cv::Mat t(len, 1, CV_32FC1, buf);
       img->mat_ = cv::imdecode(t, type);
     }
-    RETURN (obj);
+    RETURN (obj.ToLocalChecked());
   } catch (cv::Exception& e) {
     Nan::ThrowError(Nan::Error(e.what()));
   }

@@ -21,7 +21,6 @@ static Local<Value> __js (Blob<Dtype> *blob) {
   return scope.Escape(o);
 }
 
-
 template <typename Dtype>
 class JBlob : public Nan::ObjectWrap {
 public:
@@ -74,7 +73,8 @@ private:
 
   static NAN_SETTER(SetShape) {
     UNWRAP;
-    blob_->Reshape(__cxx_vec<int>(value));
+    auto shape = __cxx_vec<int>(value);
+    blob_->Reshape(shape);
   }
 
   static NAN_GETTER(GetData) {
@@ -82,20 +82,83 @@ private:
     RETURN(__js_buffer(blob_->data(), blob_->count() * sizeof(Dtype)));
   }
 
-  static NAN_SETTER(SetData) {
-    UNWRAP;
-    cv::Mat &img = Unwrap<JMat>(value->ToObject())->mat_;
 
+  static Dtype * store (Dtype *data, cv::Mat &mat, int h, int w, int c) {
     std::vector<cv::Mat> channels;
-    Dtype *data = blob_->mutable_cpu_data();
 
-    for (int i = 0; i < blob_->channels(); i++) {
-      cv::Mat channel(blob_->height(), blob_->width(), sizeof(Dtype) == sizeof(float) ? CV_32FC1 : CV_64FC1, data);
+    // verify mat.rows == h and mat.cols == w
+    for (int i = 0; i < c; i++) {
+      cv::Mat channel(h, w, sizeof(Dtype) == sizeof(float) ? CV_32FC1 : CV_64FC1, data);
       channels.push_back(channel);
-      data += blob_->width() * blob_->height();
+      data += w * h;
     }
 
-    cv::split(img, channels);
+    cv::split(mat, channels);
+    return data;
+  }
+
+  static Dtype * store (Dtype *data, Local<Value> value, int h, int w, int c) {
+    Nan::HandleScope scope;
+    Local<FunctionTemplate> mat_ctor = Nan::New(mat_ctor_p);
+    
+    if (value->IsArrayBuffer()) {
+      Local<ArrayBuffer> ab = Local<ArrayBuffer>::Cast(value);
+      auto contents = ab->GetContents();
+      
+      memcpy (data, contents.Data(), contents.ByteLength());
+      data += c * w * h;
+    }
+    else if (value->IsTypedArray()) {
+      Local<TypedArray> a = Local<TypedArray>::Cast(value);
+      Local<ArrayBuffer> ab = a->Buffer();
+      auto contents = ab->GetContents();
+      
+      memcpy (data, contents.Data(), contents.ByteLength());
+      data += c * w * h;
+    }
+    else if (mat_ctor->HasInstance(value)) {
+      cv::Mat &mat = Unwrap<JMat>(value->ToObject())->mat_;
+      
+      data = store (data, mat, h, w, c);
+    }
+    else {
+      Nan::ThrowError("Invalid argument");
+    }
+    return data;
+  }
+
+  static NAN_SETTER(SetData) {
+    Nan::HandleScope scope;
+    UNWRAP;
+
+    Dtype *data = blob_->mutable_cpu_data();
+    int h = blob_->height();
+    int w = blob_->width();
+    int c = blob_->channels();
+
+    auto shape = blob_->shape();
+    //printf("Shape: %d, %d, %d, %d\n", shape[0], shape[1], shape[2], shape[3]);
+    
+    if (value->IsArray() && !value->IsTypedArray()) {
+      Local<Array> a = Local<Array>::Cast(value);
+      //printf(" Batch: %d\n", a->Length());
+      if (shape[0] != (int) a->Length()) {
+        Nan::ThrowError("Batch size unmatched");
+        return;
+      }
+
+      for (int i = 0; i < (int) a->Length(); i++) {
+        data = store (data, a->Get(i), h, w, c);
+      }
+    }
+    else {
+      if (shape[0] != 1) {
+        Nan::ThrowError("Batch size unmatched");
+        return;
+      }
+
+      store (data, value, h, w, c);
+    }
   }
 
   #undef UNWRAP
