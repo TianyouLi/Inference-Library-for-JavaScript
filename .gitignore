@@ -2,5 +2,7 @@
 *.pb
 *.so
 demo/tf-mnist/data/
-bagua-tensorflow/build/
-bagua-tensorflow/node_modules/
+build/
+node_modules/
+bagua-mxnet/lib/
+model-zoo/mxnet/*.params
