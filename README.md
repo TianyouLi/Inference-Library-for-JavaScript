@@ -24,4 +24,5 @@ Demos are provided under **demo** folder.
 1. bagua-caffe
 2. bagua-tensorflow
 3. bagua-mxnet
+4. bagua-movidius
 

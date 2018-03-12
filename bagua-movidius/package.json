@@ -1,0 +1,17 @@
+{
+  "name": "ncsdk",
+  "version": "0.0.1",
+  "description": "Software Development Kit for the Neural Compute Stick",
+  "main": "index.js",
+  "scripts": {
+    "build": "node-gyp build"
+  },
+  "dependencies": {
+  },
+  "keywords": [
+    "NCSDK",
+    "Movidius"
+  ],
+  "author": "Kanghua Yu",
+  "license": "MIT"
+}
