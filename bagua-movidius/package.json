@@ -1,17 +1,21 @@
 {
-  "name": "ncsdk",
+  "name": "bagua-movidius",
   "version": "0.0.1",
   "description": "Software Development Kit for the Neural Compute Stick",
   "main": "index.js",
   "scripts": {
     "build": "node-gyp build"
   },
-  "dependencies": {
-  },
+  "dependencies": {},
   "keywords": [
     "NCSDK",
-    "Movidius"
+    "Movidius",
+    "Inference",
+    "JavaScript"
   ],
   "author": "Kanghua Yu",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "nan": "^2.9.2"
+  }
 }
