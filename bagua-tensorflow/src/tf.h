@@ -9,7 +9,7 @@
 
 #include <tensorflow/c/c_api.h>
 
-#define DIE(msg)  do { fputs (msg, stderr); abort(); } while(0)
+#define DIE(msg)  do { fprintf (stderr, "%s:%d: %s\n", __func__, __LINE__, msg); abort(); } while(0)
 
 #define ARG(i)    info.Length() > 0 && i < info.Length() ? info[i] : Local<Value>(Nan::Undefined())
 #define RETURN(x) info.GetReturnValue().Set(x)
@@ -105,6 +105,7 @@ public:
   static NAN_GETTER(shape);
   static NAN_GETTER(getData);
   static NAN_SETTER(setData);
+  static NAN_METHOD(toImage);
 
   static Local<Object> create(TF_Tensor *);
 

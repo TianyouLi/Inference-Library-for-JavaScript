@@ -203,5 +203,14 @@ NAN_METHOD(Session::run) {
 }
 
 NAN_METHOD(Session::close) {
-  DIE("UNIMPLEMENT");
+  Nan::HandleScope scope;
+  auto sess = Unwrap<Session>(info.This());
+  if (sess->session_ != nullptr) {
+    TF_Status* status = TF_NewStatus();
+    TF_CloseSession(sess->session_, status);
+    // Result of close is ignored, delete anyway.
+    TF_DeleteSession(sess->session_, status);
+    TF_DeleteStatus(status);
+    sess->session_ = nullptr;
+  }
 }

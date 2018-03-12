@@ -14,6 +14,8 @@ public:
   static NAN_GETTER(GetChannels);
   static NAN_GETTER(GetData);
   static NAN_METHOD(Rectangle);
+  static NAN_METHOD(cvtColor);
+  static NAN_METHOD(resize);
 };
 
 class Transformer: public Nan::ObjectWrap {

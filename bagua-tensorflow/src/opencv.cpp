@@ -27,6 +27,8 @@ NAN_MODULE_INIT(Mat::Init)
   SetAccessor(proto, __js("data"), GetData);
 
   SetMethod(proto, "rectangle", Rectangle);
+  SetMethod(proto, "cvtColor", cvtColor);
+  SetMethod(proto, "resize", resize);
 }
 
 NAN_METHOD(Mat::New) {
@@ -78,6 +80,22 @@ NAN_METHOD(Mat::Rectangle) {
     thickness = info[5]->IntegerValue();
 
   cv::rectangle(self->mat_, cv::Point(x0, y0), cv::Point(x1, y1), color, thickness);
+}
+
+NAN_METHOD(Mat::cvtColor) {
+  Nan::HandleScope scope;
+  auto self = Unwrap<Mat>(info.This());
+
+  cv::cvtColor(self->mat_, self->mat_, info[0]->IntegerValue());
+  RETURN(info.This());
+}
+
+NAN_METHOD(Mat::resize) {
+  Nan::HandleScope scope;
+  auto self = Unwrap<Mat>(info.This());
+
+  cv::resize(self->mat_, self->mat_, cv::Size(info[1]->IntegerValue(), info[0]->IntegerValue()));
+  RETURN(info.This());
 }
 
 // Transformer
@@ -135,7 +153,6 @@ NAN_METHOD(Transformer::Preprocess) {
   cv::Mat &img = Unwrap<Mat>(info[0]->ToObject())->mat_;
   auto self = Unwrap<Transformer>(info.This());
 
-  //printf("Transformer::Preprocess  %d => %d\n", img.channels(), self->num_channels_);
   cv::Mat src;
   if (img.channels() == 3 && self->num_channels_ == 1)
     cv::cvtColor(img, src, cv::COLOR_BGR2GRAY);
@@ -313,6 +330,40 @@ NAN_METHOD(VideoCapture::Close) {
 }
 
 // IO
+static NAN_METHOD(NewImage) {
+  Nan::HandleScope scope;
+  Local<Object> obj = Nan::New(Mat::ctor_p)->GetFunction()->NewInstance();
+  Mat *img = Nan::ObjectWrap::Unwrap<Mat>(obj);
+
+  try {
+    if (info.Length() >= 2) {
+      img->mat_ = cv::Mat::zeros(info[0]->IntegerValue(), info[1]->IntegerValue(), CV_8UC3);
+
+      if (info.Length() >= 3) {
+        if (info[2]->IsUint8ClampedArray()) {
+          auto ab = Local<Uint8ClampedArray>::Cast(info[2]);
+          ab->CopyContents(img->mat_.ptr(), ab->ByteLength());
+        }
+        else if (info[2]->IsUint8Array()) {
+          auto ab = Local<Uint8Array>::Cast(info[2]);
+          ab->CopyContents(img->mat_.ptr(), ab->ByteLength());
+        }
+        else if (info[2]->IsFloat32Array()) {
+          auto ab = Local<Float32Array>::Cast(info[2]);
+          auto dst = img->mat_.ptr();
+          for (int i = 0; i < ab->Length(); i++) {
+            auto v = ab->Get(i)->IntegerValue();
+            dst[i] = (unsigned char) (v < 0 ? 0 : v > 255 ? 255 : v);
+          }
+        }
+      }
+    }
+    RETURN (obj);
+  } catch (cv::Exception& e) {
+    Nan::ThrowError(Nan::Error(e.what()));
+  }
+}
+
 static NAN_METHOD(LoadImage) {
   Nan::HandleScope scope;
   Local<Object> obj = Nan::New(Mat::ctor_p)->GetFunction()->NewInstance();
@@ -345,6 +396,13 @@ static NAN_METHOD(NamedWindow) {
   cv::namedWindow(*name, flags);
 }
 
+static NAN_METHOD(ResizeWindow) {
+  Nan::HandleScope scope;
+  String::Utf8Value name(info[0]->ToString());
+
+  cv::resizeWindow(*name, info[1]->IntegerValue(), info[2]->IntegerValue());
+}
+
 static NAN_METHOD(Show) {
   Nan::HandleScope scope;
   String::Utf8Value name(info[0]->ToString());
@@ -363,8 +421,10 @@ static NAN_METHOD(WaitKey) {
 NAN_MODULE_INIT(IO::Init) {
   Local<Object> io = Nan::New<Object>();
 
+  Nan::Export(io, "newImage", NewImage);
   Nan::Export(io, "loadImage", LoadImage);
   Nan::Export(io, "namedWindow", NamedWindow);
+  Nan::Export(io, "resizeWindow", ResizeWindow);
   Nan::Export(io, "show", Show);
   Nan::Export(io, "waitKey", WaitKey);
 

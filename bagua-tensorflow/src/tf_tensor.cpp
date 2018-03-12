@@ -164,6 +164,7 @@ NAN_MODULE_INIT(Tensor::Init) {
   SetAccessor(proto, __js("type"), type);
   SetAccessor(proto, __js("shape"), shape);
   SetAccessor(proto, __js("data"), getData, setData);
+  SetMethod(proto, "toImage", toImage);
 
   ctor_instance_.Reset(ctor->GetFunction());
   Nan::Set(target, class_name(), ctor->GetFunction());
@@ -328,4 +329,8 @@ NAN_SETTER(Tensor::setData) {
   auto self = Unwrap<Tensor>(info.This());
   int num_dims = TF_NumDims(self->tensor_);
   setValue (self->tensor_, value, num_dims);
+}
+
+NAN_METHOD(Tensor::toImage) {
+  Nan::HandleScope scope;
 }
