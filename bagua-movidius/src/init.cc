@@ -73,8 +73,8 @@ public:
 
   static NAN_METHOD(AllocateGraph);
 
-  Device(const char *name) : name_(name), handle_(NULL) { fprintf(stderr, "Device %p\n", this); }
-  ~Device() { fprintf(stderr, "~Device %p\n", this); }
+  Device(const char *name) : name_(name), handle_(NULL) {}
+  ~Device() {}
 
 private:
   static Nan::Persistent<FunctionTemplate> ctor;
@@ -170,8 +170,8 @@ public:
 	//TODO:
   }
 
-  Graph(void *handle) : handle_(handle) { fprintf(stderr, "Graph %p\n", this); }
-  ~Graph() { fprintf(stderr, "~Graph %p\n", this); }
+  Graph(void *handle) : handle_(handle) {}
+  ~Graph() {}
 
 private:
   static Nan::Persistent<FunctionTemplate> ctor;
