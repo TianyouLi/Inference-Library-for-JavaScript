@@ -169,9 +169,9 @@ static mvncStatus load_fw_file(const char *name)
 	strncpy(mv_cmd_file, info.dli_fname, sizeof(mv_cmd_file) - 40);
 	p = strrchr(mv_cmd_file, '/');
 	if (p)
-		strcpy(p + 1, "mvnc/MvNCAPI.mvcmd");
+		strcpy(p + 1, "../../MvNCAPI.mvcmd");
 	else
-		strcpy(mv_cmd_file, "mvnc/MvNCAPI.mvcmd");
+		strcpy(mv_cmd_file, "../../MvNCAPI.mvcmd");
 #else
     HMODULE hm = NULL;
 
@@ -183,7 +183,7 @@ static mvncStatus load_fw_file(const char *name)
     if (!p)
         return MVNC_MVCMD_NOT_FOUND;
 
-    strcpy(p + 1, "MvNCAPI.mvcmd");
+    strcpy(p + 1, "..\\..\MvNCAPI.mvcmd");
 #endif
 
 	// Load the mvnc executable

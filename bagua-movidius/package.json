@@ -1,6 +1,6 @@
 {
   "name": "bagua-movidius",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Software Development Kit for the Neural Compute Stick",
   "main": "index.js",
   "scripts": {

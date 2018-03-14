@@ -4,12 +4,6 @@
       "target_name": "ncsdk",
 
       "sources": [
-        "src/third_party/libusb/libusb/core.c",
-        "src/third_party/libusb/libusb/descriptor.c",
-        "src/third_party/libusb/libusb/hotplug.c",
-        "src/third_party/libusb/libusb/io.c",
-        "src/third_party/libusb/libusb/strerror.c",
-        "src/third_party/libusb/libusb/sync.c",
         "src/mvnc_api.c",
         "src/usb_boot.c",
         "src/usb_link_vsc.c",
@@ -18,8 +12,7 @@
       ],
 
       "include_dirs": [
-        "<!(node -e \"require('nan')\")",
-        "src/third_party/libusb/libusb",
+        "<!(node -e \"require('nan')\")"
       ],
 
       "cflags!" : [ "-fno-exceptions"],
@@ -29,10 +22,22 @@
         [ "OS==\"linux\"", {
             "cflags": [
               "-Wall"
+            ],
+            "include_dirs": [
+              "/usr/include/libusb-1.0"
+            ],
+            "libraries": [
+              "-lusb-1.0"
             ]
         }],
         [ "OS==\"win\"", {
             "sources": [
+              "src/third_party/libusb/libusb/core.c",
+              "src/third_party/libusb/libusb/descriptor.c",
+              "src/third_party/libusb/libusb/hotplug.c",
+              "src/third_party/libusb/libusb/io.c",
+              "src/third_party/libusb/libusb/strerror.c",
+              "src/third_party/libusb/libusb/sync.c",
               "src/third_party/libusb/libusb/os/poll_windows.c",
               "src/third_party/libusb/libusb/os/threads_windows.c",
               "src/third_party/libusb/libusb/os/windows_nt_common.c",
@@ -40,6 +45,7 @@
             ],
             "include_dirs": [
               "src/third_party/libusb/msvc",
+              "src/third_party/libusb/libusb"
             ],
             "cflags": [
               "-Wall"
