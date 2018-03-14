@@ -183,7 +183,10 @@ static mvncStatus load_fw_file(const char *name)
     if (!p)
         return MVNC_MVCMD_NOT_FOUND;
 
-    strcpy(p + 1, "..\\..\MvNCAPI.mvcmd");
+    strcpy(p + 1, "..\\..\\MvNCAPI.mvcmd");
+
+    if (memcmp(mv_cmd_file, "\\\\?\\", 4) == 0)
+    	strcpy(mv_cmd_file, mv_cmd_file + 4);
 #endif
 
 	// Load the mvnc executable
