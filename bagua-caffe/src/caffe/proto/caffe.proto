@@ -492,6 +492,7 @@ message LayerParameter {
   optional AccuracyParameter accuracy_param = 102;
   optional AnnotatedDataParameter annotated_data_param = 200;
   optional ArgMaxParameter argmax_param = 103;
+  optional BNParameter bn_param = 237;
   optional BatchNormParameter batch_norm_param = 139;
   optional BiasParameter bias_param = 141;
   optional ConcatParameter concat_param = 104;
@@ -734,6 +735,19 @@ message LossParameter {
   optional bool normalize = 2;
 }
 
+message BNParameter {
+  optional FillerParameter slope_filler = 1;
+  optional FillerParameter bias_filler = 2;
+  optional float momentum = 3 [default = 0.9];
+  optional float eps = 4 [default = 1e-5];
+  optional bool frozen = 5 [default = false];
+  enum Engine {
+    DEFAULT = 0;
+    CAFFE = 1;
+    CUDNN = 2;
+  }
+  optional Engine engine = 6 [default = DEFAULT];
+}
 // Messages that store parameters used by individual layer types follow, in
 // alphabetical order.
 
