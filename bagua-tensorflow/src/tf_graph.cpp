@@ -21,7 +21,6 @@ NAN_MODULE_INIT(Graph::Init) {
 
   SetAccessor(proto, __js("operations"), getOperations);
   SetMethod(proto, "operation", getOperation);
-  SetMethod(proto, "hack", hack);
 
   ctor_instance_.Reset(ctor->GetFunction());
   Nan::Set(target, class_name(), ctor->GetFunction());
